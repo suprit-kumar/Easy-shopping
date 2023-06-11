@@ -1,6 +1,7 @@
 from django.db import models
 from category.models import Category
 from django.utils.text import slugify
+from django.urls import reverse
 # Create your models here.
 
 class Product(models.Model):
@@ -16,6 +17,9 @@ class Product(models.Model):
     product_created_date = models.DateTimeField(auto_now_add=True)
     product_modified_date = models.DateTimeField(auto_now=True)
 
+
+    def get_url(self):
+        return reverse('product_detail',args=[self.product_category.cat_slug,self.product_slug])
 
     def __str__(self):
         return self.product_name

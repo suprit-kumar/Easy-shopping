@@ -136,7 +136,7 @@
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap">
 				<div class="fix-height">
-					<a href="./product-detail.html" class="title">{{product.product_name}}</a>
+					<a href="{% url 'product_detail' slug=product.product_category__cat_slug  product_slug=product.product_slug %}" class="title">{{product.product_name}}</a>
 					<div class="price-wrap mt-2">
 						<span class="price">₹{{product.product_price}}</span>
 						<del class="price-old">₹{{product.product_price | add:200}}</del>
