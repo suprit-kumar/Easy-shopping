@@ -1,0 +1,11 @@
+.idea
+*.pyc
+*.log
+*.env
+*.sqlite3
+workspace.xml
+greatkart/__pycache__/*
+accounts/__pycache__/*
+category/__pycache__/*
+store/__pycache__/*
+__pycache__/*
