@@ -5,7 +5,9 @@ from category import models as cat_model
 from carts.models import CartItem
 from carts.views import _cart_id
 import traceback
-from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+
 
 def store(request, slug=None):
     specific_category = None
@@ -45,3 +47,19 @@ def product_detail(request, slug, product_slug):
     context = {'single_product': single_product, 'in_cart': in_cart}
 
     return render(request, 'store/product_detail.html', context)
+
+
+def search(request):
+    keyword = request.GET.get("keyword")
+    if keyword:
+        products = models.Product.objects.values('product_name', 'product_price', 'product_image', 'product_id',
+                                                 'product_stock',
+                                                 'product_slug', 'product_category__cat_slug', ).filter(
+            Q(product_name__icontains=keyword) | Q(product_description__icontains=keyword) | Q(
+                product_slug__icontains=keyword), is_available=True).order_by('-product_modified_date')
+        product_count = products.count()
+        context = {
+            'products': products,
+            'product_count': product_count,
+        }
+    return render(request, 'store/store.html',context)

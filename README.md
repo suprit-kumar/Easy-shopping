@@ -54,7 +54,7 @@ https://github.com/suprit-kumar/Easy-shopping.git
 8. Start the development server:
 
 
-9. Access the application in your browser at `http://localhost:8000`.
+9. Access the application in your browser at `http://127.0.0.1:8000/`.
 
 ## Configuration
 
@@ -71,18 +71,12 @@ Make sure to review and update these files according to your specific needs.
 
 Contributions to this project are welcome! If you have any ideas, improvements, or bug fixes, please open an issue or submit a pull request. Make sure to follow the existing coding style and guidelines.
 
-Before contributing, please review the [Contribution Guidelines](CONTRIBUTING.md) for detailed information on how to get started.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
 
 ## Acknowledgments
 
 - [Django](https://www.djangoproject.com/) - The web framework used for building this project.
 - [Bootstrap](https://getbootstrap.com/) - The CSS framework used for responsive design.
 - [Font Awesome](https://fontawesome.com/) - The iconic font and CSS toolkit.
-- [Stripe](https://stripe.com/) - The payment gateway used for payment integration.
 
 ## Contact
 
