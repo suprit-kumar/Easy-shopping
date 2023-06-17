@@ -41,7 +41,7 @@ class Account(AbstractBaseUser):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=100, unique=True)
-    mobile = models.CharField(max_length=12, unique=True)
+    mobile = models.CharField(max_length=12, null=True)
 
     # required fields
 
@@ -65,3 +65,18 @@ class Account(AbstractBaseUser):
 
     def has_module_perms(self, add_label):  # Django's default method
         return True
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(Account, on_delete=models.CASCADE)
+    address_line_1 = models.CharField(blank=True, max_length=100)
+    address_line_2 = models.CharField(blank=True, max_length=100)
+    profile_picture = models.ImageField(blank=True, upload_to='userprofile')
+    city = models.CharField(blank=True, max_length=20)
+    state = models.CharField(blank=True, max_length=20)
+    country = models.CharField(blank=True, max_length=20)
+
+    def __str__(self):
+        return self.user.first_name
+
+    def full_address(self):
+        return f'{self.address_line_1} {self.address_line_2}'

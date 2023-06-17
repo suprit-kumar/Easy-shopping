@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'accounts',
     'store',
     'carts',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +58,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+SESSION_EXPIRE_SECONDS = 3600  # 1 hour
+SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
+SESSION_TIMEOUT_REDIRECT = 'accounts/login'
+
 
 ROOT_URLCONF = 'greatkart.urls'
 
@@ -146,3 +152,15 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
+
+
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = ast.literal_eval(os.environ.get('EMAIL_PORT'))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = ast.literal_eval(os.environ.get('EMAIL_USE_TLS'))
