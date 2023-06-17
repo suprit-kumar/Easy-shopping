@@ -28,3 +28,28 @@ class Product(models.Model):
         if not self.product_slug:
             self.product_slug = slugify(self.product_name)
         super(Product, self).save(*args, **kwargs)
+
+
+class VariationsManagerr(models.Manager):
+    def colors(self):
+        return super(VariationsManagerr,self).filter(variation_category='color',is_active=True)
+
+    def sizes(self):
+        return super(VariationsManagerr,self).filter(variation_category='size',is_active=True)
+
+variation_category_choices = (
+    ('color','color'),
+    ('size','size'),
+)
+
+class Variations(models.Model):
+    product = models.ForeignKey(Product,on_delete=models.CASCADE)
+    variation_category = models.CharField(max_length=100,choices=variation_category_choices)
+    variation_value = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    created_date = models.DateTimeField(auto_now=True)
+
+    objects = VariationsManagerr()
+
+    def __str__(self):
+        return self.variation_value

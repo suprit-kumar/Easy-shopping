@@ -42,9 +42,13 @@ def product_detail(request, slug, product_slug):
     try:
         single_product = models.Product.objects.get(product_category__cat_slug=slug, product_slug=product_slug)
         in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request), product=single_product).exists()
+        product_variations = models.Variations.objects.values('variation_category', 'variation_value').filter(
+            product__product_category__cat_slug=slug,
+            product__product_slug=product_slug,is_active=True)
+        print(product_variations)
     except Exception as e:
         raise e
-    context = {'single_product': single_product, 'in_cart': in_cart}
+    context = {'single_product': single_product, 'in_cart': in_cart, 'product_variations': product_variations}
 
     return render(request, 'store/product_detail.html', context)
 
@@ -62,4 +66,4 @@ def search(request):
             'products': products,
             'product_count': product_count,
         }
-    return render(request, 'store/store.html',context)
+    return render(request, 'store/store.html', context)
