@@ -77,6 +77,7 @@ Contributions to this project are welcome! If you have any ideas, improvements, 
 - [Django](https://www.djangoproject.com/) - The web framework used for building this project.
 - [Bootstrap](https://getbootstrap.com/) - The CSS framework used for responsive design.
 - [Font Awesome](https://fontawesome.com/) - The iconic font and CSS toolkit.
+- [Razorpay](https://razorpay.com/docs/#home-payments) - The payment gateway.
 
 ## Contact
 
