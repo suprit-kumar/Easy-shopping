@@ -9,6 +9,57 @@ from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
+from django.shortcuts import render
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponseBadRequest
+
+
+razorpay_client = razorpay.Client(
+    auth=(settings.RAZOR_KEY_ID, settings.RAZOR_KEY_SECRET))
+
+
+# we need to csrf_exempt this url as
+# POST request will be made by Razorpay
+# and it won't have the csrf token.
+
+@csrf_exempt
+def paymenthandler(request):
+    if request.method == "POST":
+        try:
+
+            # get the required parameters from post request.
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
+            params_dict = {
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            }
+
+            result = razorpay_client.utility.verify_payment_signature(
+                params_dict)
+
+
+            if result is not None:
+                amount = 20000  # Rs. 200
+                try:
+                    razorpay_client.payment.capture(payment_id, amount)
+                    return render(request, 'paymentsuccess.html')
+                except:
+
+                    return render(request, 'paymentfail.html')
+            else:
+
+                return render(request, 'paymentfail.html')
+        except:
+
+            return HttpResponseBadRequest()
+    else:
+        return HttpResponseBadRequest()
+
 
 def payments(request):
     body = json.loads(request.body)
@@ -16,11 +67,11 @@ def payments(request):
 
     # Store transaction details inside Payment model
     payment = Payment(
-        user = request.user,
-        payment_id = body['transID'],
-        payment_method = body['payment_method'],
-        amount_paid = order.order_total,
-        status = body['status'],
+        user=request.user,
+        payment_id=body['transID'],
+        payment_method=body['payment_method'],
+        amount_paid=order.order_total,
+        status=body['status'],
     )
     payment.save()
 
@@ -48,7 +99,6 @@ def payments(request):
         orderproduct.variations.set(product_variation)
         orderproduct.save()
 
-
         # Reduce the quantity of the sold products
         product = Product.objects.get(id=item.product_id)
         product.stock -= item.quantity
@@ -74,7 +124,8 @@ def payments(request):
     }
     return JsonResponse(data)
 
-def place_order(request, total=0, quantity=0,):
+
+def place_order(request, total=0, quantity=0, ):
     current_user = request.user
 
     # If the cart count is less than or equal to 0, then redirect back to shop
@@ -88,7 +139,7 @@ def place_order(request, total=0, quantity=0,):
     for cart_item in cart_items:
         total += (cart_item.product.product_price * cart_item.quantity)
         quantity += cart_item.quantity
-    tax = (2 * total)/100
+    tax = (2 * total) / 100
     grand_total = total + tax
 
     if request.method == 'POST':
@@ -115,20 +166,40 @@ def place_order(request, total=0, quantity=0,):
             yr = int(datetime.date.today().strftime('%Y'))
             dt = int(datetime.date.today().strftime('%d'))
             mt = int(datetime.date.today().strftime('%m'))
-            d = datetime.date(yr,mt,dt)
-            current_date = d.strftime("%Y%m%d") #20210305
+            d = datetime.date(yr, mt, dt)
+            current_date = d.strftime("%Y%m%d")  # 20210305
             order_number = current_date + str(data.id)
             data.order_number = order_number
             data.save()
 
             order = Order.objects.get(user=current_user, is_ordered=False, order_number=order_number)
-            context = {
-                'order': order,
-                'cart_items': cart_items,
-                'total': total,
-                'tax': tax,
-                'grand_total': grand_total,
-            }
+
+            context = {}
+
+            context['order'] = order
+            context['cart_items'] = cart_items
+            context['total'] = total
+            context['tax'] = tax
+            context['grand_total'] = grand_total
+
+            currency = 'INR'
+            amount = int(grand_total) * 100  # Rs. 200
+
+            # Create a Razorpay Order
+            razorpay_order = razorpay_client.order.create(dict(amount=amount,
+                                                               currency=currency,
+                                                               payment_capture='1'))
+
+            # order id of newly created order.
+            razorpay_order_id = razorpay_order['id']
+            callback_url = 'paymenthandler/'
+
+            context['razorpay_order_id'] = razorpay_order_id
+            context['razorpay_merchant_key'] = settings.RAZOR_KEY_ID
+            context['razorpay_amount'] = amount
+            context['currency'] = currency
+            context['callback_url'] = callback_url
+
             return render(request, 'orders/payments.html', context)
     else:
         return redirect('checkout')
