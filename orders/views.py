@@ -14,22 +14,16 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest
-
+from .constants import PaymentStatus
+from django.shortcuts import redirect, reverse
 
 razorpay_client = razorpay.Client(
     auth=(settings.RAZOR_KEY_ID, settings.RAZOR_KEY_SECRET))
 
-
-# we need to csrf_exempt this url as
-# POST request will be made by Razorpay
-# and it won't have the csrf token.
-
 @csrf_exempt
-def paymenthandler(request):
+def payments(request):
     if request.method == "POST":
         try:
-
-            # get the required parameters from post request.
             payment_id = request.POST.get('razorpay_payment_id', '')
             razorpay_order_id = request.POST.get('razorpay_order_id', '')
             signature = request.POST.get('razorpay_signature', '')
@@ -38,94 +32,68 @@ def paymenthandler(request):
                 'razorpay_payment_id': payment_id,
                 'razorpay_signature': signature
             }
-
-            result = razorpay_client.utility.verify_payment_signature(
-                params_dict)
-
+            result = razorpay_client.utility.verify_payment_signature(params_dict)
 
             if result is not None:
-                amount = 20000  # Rs. 200
                 try:
-                    razorpay_client.payment.capture(payment_id, amount)
-                    return render(request, 'paymentsuccess.html')
-                except:
+                    order = Order.objects.get(user=request.user, is_ordered=False, order_number=razorpay_order_id)
 
-                    return render(request, 'paymentfail.html')
+                    # Store transaction details inside Payment model
+                    payment = Payment(
+                        user=request.user,
+                        payment_id=payment_id,
+                        payment_method='Razorpay',
+                        amount_paid=order.order_total,
+                        status=PaymentStatus.SUCCESS,
+                    )
+                    payment.save()
+
+                    order.payment = payment
+                    order.is_ordered = True
+                    order.save()
+
+                    # Move the cart items to Order Product table
+                    cart_items = CartItem.objects.filter(user=request.user)
+
+                    for item in cart_items:
+                        orderproduct = OrderProduct()
+                        orderproduct.order_id = order.id
+                        orderproduct.payment = payment
+                        orderproduct.user_id = request.user.id
+                        orderproduct.product_id = item.product_id
+                        orderproduct.quantity = item.quantity
+                        orderproduct.product_price = item.product.product_price
+                        orderproduct.ordered = True
+                        orderproduct.save()
+
+                        cart_item = CartItem.objects.get(id=item.id)
+                        product_variation = cart_item.variations.all()
+                        orderproduct = OrderProduct.objects.get(id=orderproduct.id)
+                        orderproduct.variations.set(product_variation)
+                        orderproduct.save()
+
+                        # Reduce the quantity of the sold products
+                        product = Product.objects.get(product_id=item.product_id)
+                        product.product_stock -= item.quantity
+                        product.save()
+
+                    # Clear cart
+                    CartItem.objects.filter(user=request.user).delete()
+                    return redirect(reverse('order_complete') + '?order_number='+order.order_number+'&payment_id='+payment.payment_id)
+                    # return redirect('order_complete' + '?order_number='+order.order_number+'&payment_id='+payment.payment_id)
+                except Exception as e:
+                    print(f"Exception in Payment: {e}")
+
             else:
-
-                return render(request, 'paymentfail.html')
-        except:
-
-            return HttpResponseBadRequest()
-    else:
-        return HttpResponseBadRequest()
+                return HttpResponse("Payment has been failed")
+        except Exception as e:
+            print(f"Exception in Payment: {e}")
 
 
-def payments(request):
-    body = json.loads(request.body)
-    order = Order.objects.get(user=request.user, is_ordered=False, order_number=body['orderID'])
-
-    # Store transaction details inside Payment model
-    payment = Payment(
-        user=request.user,
-        payment_id=body['transID'],
-        payment_method=body['payment_method'],
-        amount_paid=order.order_total,
-        status=body['status'],
-    )
-    payment.save()
-
-    order.payment = payment
-    order.is_ordered = True
-    order.save()
-
-    # Move the cart items to Order Product table
-    cart_items = CartItem.objects.filter(user=request.user)
-
-    for item in cart_items:
-        orderproduct = OrderProduct()
-        orderproduct.order_id = order.id
-        orderproduct.payment = payment
-        orderproduct.user_id = request.user.id
-        orderproduct.product_id = item.product_id
-        orderproduct.quantity = item.quantity
-        orderproduct.product_price = item.product.price
-        orderproduct.ordered = True
-        orderproduct.save()
-
-        cart_item = CartItem.objects.get(id=item.id)
-        product_variation = cart_item.variations.all()
-        orderproduct = OrderProduct.objects.get(id=orderproduct.id)
-        orderproduct.variations.set(product_variation)
-        orderproduct.save()
-
-        # Reduce the quantity of the sold products
-        product = Product.objects.get(id=item.product_id)
-        product.stock -= item.quantity
-        product.save()
-
-    # Clear cart
-    CartItem.objects.filter(user=request.user).delete()
-
-    # Send order recieved email to customer
-    mail_subject = 'Thank you for your order!'
-    message = render_to_string('orders/order_recieved_email.html', {
-        'user': request.user,
-        'order': order,
-    })
-    to_email = request.user.email
-    send_email = EmailMessage(mail_subject, message, to=[to_email])
-    send_email.send()
-
-    # Send order number and transaction id back to sendData method via JsonResponse
-    data = {
-        'order_number': order.order_number,
-        'transID': payment.payment_id,
-    }
-    return JsonResponse(data)
 
 
-def place_order(request, total=0, quantity=0, ):
+
+def place_order(request, total=0, quantity=0,):
     current_user = request.user
 
     # If the cart count is less than or equal to 0, then redirect back to shop
@@ -162,25 +130,6 @@ def place_order(request, total=0, quantity=0, ):
             data.tax = tax
             data.ip = request.META.get('REMOTE_ADDR')
             data.save()
-            # Generate order number
-            yr = int(datetime.date.today().strftime('%Y'))
-            dt = int(datetime.date.today().strftime('%d'))
-            mt = int(datetime.date.today().strftime('%m'))
-            d = datetime.date(yr, mt, dt)
-            current_date = d.strftime("%Y%m%d")  # 20210305
-            order_number = current_date + str(data.id)
-            data.order_number = order_number
-            data.save()
-
-            order = Order.objects.get(user=current_user, is_ordered=False, order_number=order_number)
-
-            context = {}
-
-            context['order'] = order
-            context['cart_items'] = cart_items
-            context['total'] = total
-            context['tax'] = tax
-            context['grand_total'] = grand_total
 
             currency = 'INR'
             amount = int(grand_total) * 100  # Rs. 200
@@ -189,11 +138,18 @@ def place_order(request, total=0, quantity=0, ):
             razorpay_order = razorpay_client.order.create(dict(amount=amount,
                                                                currency=currency,
                                                                payment_capture='1'))
-
-            # order id of newly created order.
             razorpay_order_id = razorpay_order['id']
-            callback_url = 'paymenthandler/'
+            data.order_number = razorpay_order_id
+            data.save()
+            order = Order.objects.get(user=current_user, is_ordered=False, order_number=razorpay_order_id)
+            context = {}
 
+            callback_url = f"http://{request.get_host()}/orders/payments/"
+            context['order'] = order
+            context['cart_items'] = cart_items
+            context['total'] = total
+            context['tax'] = tax
+            context['grand_total'] = grand_total
             context['razorpay_order_id'] = razorpay_order_id
             context['razorpay_merchant_key'] = settings.RAZOR_KEY_ID
             context['razorpay_amount'] = amount
