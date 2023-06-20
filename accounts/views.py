@@ -49,10 +49,10 @@ def register(request):
                 'token': default_token_generator.make_token(user),
             })
             to_email = email
-            # send_email = EmailMessage(mail_subject, message, to=[to_email])
-            # send_email.send()
-            # messages.success(request, 'Thank you for registering with us. We have sent you a verification email to your email address [rathan.kumar@gmail.com]. Please verify it.')
-            # return redirect('/accounts/login/?command=verification&email='+email)
+            send_email = EmailMessage(mail_subject, message, to=[to_email])
+            send_email.send()
+            messages.success(request, f'Thank you for registering with us. We have sent you a verification email to your email address [{to_email}]. Please verify it.')
+            return redirect('/accounts/login/?command=verification&email='+email)
             return redirect('login')
     else:
         form = RegistrationForm()
@@ -137,7 +137,7 @@ def activate(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = Account._default_manager.get(pk=uid)
-    except(TypeError, ValueError, OverflowError, Account.DoesNotExist):
+    except(TypeError, ValueError, OverflowError):
         user = None
 
     if user is not None and default_token_generator.check_token(user, token):
@@ -194,7 +194,7 @@ def resetpassword_validate(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = Account._default_manager.get(pk=uid)
-    except(TypeError, ValueError, OverflowError, Account.DoesNotExist):
+    except(TypeError, ValueError, OverflowError):
         user = None
 
     if user is not None and default_token_generator.check_token(user, token):

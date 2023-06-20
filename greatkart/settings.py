@@ -155,11 +155,15 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
+# Email Configurations
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = ast.literal_eval(os.environ.get('EMAIL_PORT'))
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = ast.literal_eval(os.environ.get('EMAIL_USE_TLS'))
+DEFAULT_FROM_EMAIL = f"Easy Shopping <{EMAIL_HOST_USER}>"
 
+# Razorpay configurations
 RAZOR_KEY_ID = os.environ.get('RAZOR_KEY_ID')
 RAZOR_KEY_SECRET = os.environ.get('RAZOR_KEY_SECRET')
