@@ -2,6 +2,17 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import dotenv
+
+dotenv.load_dotenv()
+
+from create_superuser import create_superuser
+
+start_user = create_superuser(os.environ.get("SU_FIRST_NAME"),
+                              os.environ.get("SU_LAST_NAME"),
+                              os.environ.get("SU_USERNAME"),
+                              os.environ.get("SU_EMAIL"),
+                              os.environ.get("SU_PASSWORD"), )
 
 
 def main():
@@ -20,3 +31,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    start_user
