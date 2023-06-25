@@ -13,13 +13,14 @@ import os
 import ast
 import dotenv
 
-dotenv.load_dotenv()
+
 
 # from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+env_path = os.path.join(BASE_DIR, ".env")
+dotenv.load_dotenv(dotenv_path=env_path)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -29,7 +30,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ast.literal_eval(os.environ.get('DEBUG'))
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(" ")
 
 # Application definition
 
@@ -101,6 +103,16 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.environ.get('PG_DB_ENGINE'),
+#         'NAME': os.environ.get('PG_DB_NAME'),
+#         'USER': os.environ.get('PG_DB_USERNAME'),
+#         'PASSWORD': os.environ.get('PG_DB_PASSWORD'),
+#         'HOST': os.environ.get('PG_DB_HOST'),
+#         'PORT': os.environ.get('PG_DB_PORT'),
+#     }
+# }
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 

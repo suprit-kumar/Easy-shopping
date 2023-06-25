@@ -4,15 +4,15 @@ This is an e-commerce project built with Django, a powerful Python web framework
 
 ## Features
 
-- User registration and authentication
+- User registration and authentication `[Completed]`
 - Product catalog with category and search functionality `[Completed]`
 - Product details with images, descriptions, and pricing information `[Completed]`
 - Shopping cart management with add, update, and remove capabilities `[Completed]`
-- Checkout process with order placement and payment integration
-- Order history and tracking for registered users
+- Checkout process with order placement and payment integration `[Completed]`
+- Order history and tracking for registered users `[Completed]`
 - Admin panel for managing products, orders, and user accounts `[Completed]`
 - Responsive design for optimal viewing experience on various devices `[Completed]`
-- Integration with popular payment gateways (e.g., Stripe, PayPal)
+- Integration with popular payment gateways (e.g., Razorpay) `[Completed]`
 - Deployment with Docker and Nginx
 
 ## Installation
