@@ -13,7 +13,7 @@ This is an e-commerce project built with Django, a powerful Python web framework
 - Admin panel for managing products, orders, and user accounts `[Completed]`
 - Responsive design for optimal viewing experience on various devices `[Completed]`
 - Integration with popular payment gateways (e.g., Razorpay) `[Completed]`
-- Deployment with Docker and Nginx
+- Deployment with Docker and Nginx `[Completed]`
 
 ## Installation
 
@@ -42,7 +42,9 @@ https://github.com/suprit-kumar/Easy-shopping.git
 
 5. Install the project dependencies:
 
- - pip install -r requirements.txt
+  ```
+  pip install -r requirements.txt
+  ```
 
 
 6. Run database migrations:
@@ -60,9 +62,6 @@ https://github.com/suprit-kumar/Easy-shopping.git
 
 The project comes with default settings, but you may need to customize them based on your requirements. The configuration files are located in the `greatkart/settings` directory. Here are a few important files you may want to modify:
 
-- `base.py`: Contains common settings for all environments.
-- `development.py`: Includes development-specific settings.
-- `production.py`: Includes production-specific settings.
 - `.env`: A file that can be used for storing sensitive information such as secret keys, API credentials, etc. (not included in version control).
 
 Make sure to review and update these files according to your specific needs.
@@ -86,7 +85,7 @@ If you have any questions, suggestions, or feedback, please feel free to reach o
 - Project Maintainer: Suprit Kumar
 - Email: supritk16@gmail.com
 
-Happy coding! Work in Progress (A few features are still pending currently working on that)
+Happy coding!
 
 
 
