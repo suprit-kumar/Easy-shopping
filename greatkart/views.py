@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from store.models import Product
 
-
+# Testing
 # Create your views here.
 def home(request):
     products = Product.objects.values('product_name', 'product_price', 'product_image', 'product_description',
